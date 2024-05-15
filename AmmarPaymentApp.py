@@ -117,12 +117,16 @@ def tokenize_data(data):
         token = secrets.token_hex(16)
         token_map[token] = value
         data[key] = token
+    print(f"Tokenized Data: {data}")
+    print(f"Token Map: {token_map}")
     return data, token_map
+
 
 def detokenize_data(data, token_map):
     for key, value in data.items():
         if value in token_map:
             data[key] = token_map[value]
+    print(f"Detokenized Data: {data}")
     return data
 
 def derive_key(password, salt):
@@ -166,6 +170,7 @@ def decrypt_token_map(encrypted_token_map, password):
 
 def save_token_map(token_map, file_path, password):
     encrypted_token_map = encrypt_token_map(token_map, password)
+    print(f"Encrypted Token Map: {encrypted_token_map}")
     with open(file_path, 'w') as file:
         file.write(encrypted_token_map)
     os.chmod(file_path, 0o600)
@@ -174,7 +179,9 @@ def load_token_map(file_path, password):
     try:
         with open(file_path, 'r') as file:
             encrypted_token_map = file.read()
-        return decrypt_token_map(encrypted_token_map, password)
+        token_map = decrypt_token_map(encrypted_token_map, password)
+        print(f"Loaded Token Map: {token_map}")
+        return token_map
     except Exception as e:
         raise ValueError(f"Failed to load token map: {e}")
 
@@ -269,12 +276,13 @@ class PaymentApp:
         amount = self.amount_entry.get()
         data = {"Name": name, "Receiver ID": receiver_id, "Card Number": card_number, "Amount": amount}
 
+        print(f"Original Data: {data}")
         tokenized_data, new_token_map = tokenize_data(data)
+        print(f"Tokenized Data: {tokenized_data}")
         token_map.update(new_token_map)
         save_token_map(token_map, token_map_file, password)
 
         tokenized_data_str = json.dumps(tokenized_data)
-
         encrypted_data = encrypt_data(public_key, tokenized_data_str)
 
         cursor.execute('INSERT INTO transactions (encrypted_data, receiver_id) VALUES (?, ?)', (encrypted_data, receiver_id))
@@ -305,7 +313,9 @@ class PaymentApp:
         cursor.execute('SELECT encrypted_data FROM transactions')
         records = cursor.fetchall()
         encrypted_data = records[index][0]
+
         decrypted_tokenized_data = decrypt_data(private_key, encrypted_data)
+        print(f"Decrypted Tokenized Data: {decrypted_tokenized_data}")
         tokenized_data = json.loads(decrypted_tokenized_data)
         decrypted_message = detokenize_data(tokenized_data, token_map)
         messagebox.showinfo("Decrypted Transaction", f"Transaction Details: {decrypted_message}")
