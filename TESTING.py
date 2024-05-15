@@ -60,8 +60,8 @@ class TestPaymentSystem(unittest.TestCase):
         self.conn.commit()
         self.private_key, self.public_key = generate_rsa_keys()
 
-    def test_million_random_texts(self):
-        random_texts = [self.generate_random_text(random.randint(1, 100)) for _ in range(1000)]
+    def test_high_volume_random_texts(self):
+        random_texts = [self.generate_random_text(random.randint(1, 100)) for _ in range(10000)]
         for text in random_texts:
             encrypted_data = encrypt_data(self.public_key, text)
             decrypted_text = decrypt_data(self.private_key, encrypted_data)
