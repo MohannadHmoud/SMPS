@@ -352,8 +352,6 @@ class PaymentApp:
         messagebox.showinfo("Reported Transactions", display_text)
 
     def on_closing(self):
-        cursor.execute('DELETE FROM transactions')
-        cursor.execute('DELETE FROM reported_transactions')
         conn.commit()
         conn.close()
         self.root.destroy()
